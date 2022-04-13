@@ -21,11 +21,13 @@ app.post("/users/:name", (req, res) => {
   res.send(actions.getUser(userName));
 });
 
+// add one year to everyone else
 app.post("/sabotage/add-one-year/:name", (req, res) => {
   const userName = req.params.name;
   res.send("success?");
 });
 
+// toggle the lights
 app.post("/sabotage/toggle-lights", (req, res) => {
   res.send("success?");
 });
