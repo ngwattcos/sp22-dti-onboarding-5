@@ -1,0 +1,1 @@
+cd my-app-backend && npm run start; cd ../;

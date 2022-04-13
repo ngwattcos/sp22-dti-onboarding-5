@@ -1,0 +1,1 @@
+cd my-app-frontend && npm start; cd ../
