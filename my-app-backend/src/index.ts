@@ -2,35 +2,38 @@ import express from "express";
 import path from "path";
 import cors from "cors";
 
-import { UserType } from "../../types/types";
+import { Actions, GameState, UserType } from "../../types/types";
 import { createUser } from "./data";
 
 const app = express();
 const port = 8080; // default port to listen
 
-let state: any = {};
-state.users = {
-  Alice: createUser("Alice", 1),
-  Bob: createUser("Bob", 2),
-  Charlie: createUser("Charlie", 3),
+const state: GameState = {
+  users: {
+    Alice: createUser("Alice", 1),
+    Bob: createUser("Bob", 2),
+    Charlie: createUser("Charlie", 3),
+  },
+  lightsOn: false
 };
 
-state.lightsOn = false;
+const actions: Actions = {
+  getAllUsers: () => state.users,
 
-let actions: any = {};
-actions.getAllUsers = () =>
-  Object.keys(state.users).map((name) => state.users[name]);
+  getUserByName: (name: string) => state.users[name],
 
-actions.getUserByName = (name: string) => state.users[name];
+  getGameState: () => state,
 
-actions.updateUserByName = (name: string, update: Partial<UserType>) => {
-  const userBeforeUpdate = state.users[name];
-  state.users[name] = { ...userBeforeUpdate, ...update };
+  updateUserByName: (name: string, update: Partial<UserType>) => {
+    const userBeforeUpdate = state.users[name];
+    state.users[name] = { ...userBeforeUpdate, ...update };
+  },
+
+  toggleLights: () => {
+    state.lightsOn = !state.lightsOn;
+  },
 };
 
-actions.toggleLights = () => {
-  state.lightsOn = !state.lightsOn;
-};
 
 // Configure Express to use EJS
 app.set("views", path.join(__dirname, "views"));
@@ -42,23 +45,24 @@ const options: cors.CorsOptions = {
   origin: allowedOrigins,
 };
 app.use(cors(options));
-app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("potato butt");
+  res.send(actions.getGameState());
 });
 app.get("/users/", (req, res) => {
-  res.send(actions.getUsers());
+  res.send(actions.getAllUsers());
 });
 
 app.get("/user/:name", (req, res) => {
-  res.send(actions.getUser(req.params.name));
+  res.send(actions.getUserByName(req.params.name));
 });
 
 app.post("/user/:name", (req, res) => {
   const userName = req.params.name;
-  actions.updateUser(userName, req.body as Partial<UserType>);
-  res.send(actions.getUser(userName));
+  actions.updateUserByName(userName, req.body as Partial<UserType>);
+  const partialUpdate = actions.getUserByName(userName);
+
+  res.send(partialUpdate);
 });
 
 // add one year to everyone else
